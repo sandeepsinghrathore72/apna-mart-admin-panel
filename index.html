@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="hi">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Apna Mart Admin</title>
+    <style>
+        :root {
+            font-family: Arial, sans-serif;
+            color: #173526;
+            background: #f3f7f3
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0
+        }
+
+        .top {
+            background: #137a43;
+            color: #fff;
+            padding: 22px max(16px, calc((100% - 1050px)/2))
+        }
+
+        .top h1 {
+            margin: 0 0 6px
+        }
+
+        .wrap {
+            max-width: 1050px;
+            margin: 22px auto;
+            padding: 0 14px
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 3px 14px #0000000d
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 5px
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #cbd8cf;
+            border-radius: 8px;
+            font-size: 15px
+        }
+
+        button {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 14px;
+            background: #168447;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            margin: 5px 5px 0 0
+        }
+
+        button.secondary {
+            background: #e7efe9;
+            color: #174b2e
+        }
+
+        button.warn {
+            background: #a64c24
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap
+        }
+
+        .row input {
+            max-width: 430px
+        }
+
+        .msg {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            white-space: pre-wrap
+        }
+
+        .ok {
+            background: #e4f6e9;
+            color: #135a2e
+        }
+
+        .bad {
+            background: #fff0ec;
+            color: #8c2d19
+        }
+
+        .products {
+            display: grid;
+            gap: 10px
+        }
+
+        .prod {
+            border: 1px solid #e0e9e2;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between
+        }
+
+        .prod small {
+            display: block;
+            color: #617367;
+            margin-top: 4px
+        }
+
+        .pill {
+            padding: 4px 8px;
+            border-radius: 20px;
+            background: #e4f6e9;
+            font-size: 12px
+        }
+
+        .pill.off {
+            background: #fff0ec
+        }
+
+        @media(max-width:620px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+
+            .prod {
+                align-items: flex-start;
+                flex-direction: column
+            }
+
+            .top {
+                padding: 18px
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="top">
+        <h1>🛒 Apna Mart Admin</h1>
+        <div>Products, prices, stock aur customer orders manage karein</div>
+    </header>
+    <main class="wrap">
+        <section class="card">
+            <h2>1. Backend Connection</h2>
+            <div class="grid">
+                <div><label>API Base URL</label><input id="api" value="http://localhost:8081"></div>
+                <div><label>Admin API Key</label><input id="key" type="password"
+                        placeholder="ADMIN_API_KEY yahan daalein"></div>
+            </div><button id="connect">Connect / Products Load</button>
+            <div id="message" aria-live="polite"></div>
+            <p><small>Admin key sirf apne local development setup mein use karein. Is page ko public hosting par key ke
+                    saath publish na karein.</small></p>
+        </section>
+        <section class="card">
+            <h2 id="formTitle">2. Naya Product Add Karein</h2><input id="id" type="hidden">
+            <div class="grid">
+                <div><label>Product Name</label><input id="name" placeholder="Fresh Apples"></div>
+                <div><label>Category</label><input id="category" placeholder="Fruits"></div>
+                <div><label>Unit</label><input id="unit" placeholder="1 kg, 500 ml, 1 pack"></div>
+                <div><label>Price (₹)</label><input id="price" type="number" min="0.01" step="0.01" placeholder="120">
+                </div>
+                <div><label>Emoji (temporary image substitute)</label><input id="emoji" value="🛒" maxlength="12"></div>
+                <div><label>Product Photo (JPG / PNG / WebP, max 3 MB)</label><input id="photo" type="file"
+                        accept="image/jpeg,image/png,image/webp"></div>
+                <div><label>Stock Status</label><select id="stock">
+                        <option value="true">In stock</option>
+                        <option value="false">Out of stock</option>
+                    </select></div>
+            </div>
+            <div class="row"><button id="save">Save Product</button><button id="clear" class="secondary">Clear
+                    Form</button></div>
+        </section>
+        <section class="card">
+            <div class="row" style="justify-content:space-between">
+                <h2>3. Product List</h2><button id="reload" class="secondary">Refresh</button>
+            </div>
+            <div id="products" class="products">Connect karke products load karein.</div>
+        </section>
+        <section class="card">
+            <div class="row" style="justify-content:space-between">
+                <h2>4. Customer Orders</h2><button id="ordersReload" class="secondary">Refresh Orders</button>
+            </div>
+            <p><small>Latest 200 orders. Status update karne par customer ke My Orders mein naya status dikhega.</small>
+            </p>
+            <div id="orders" class="products">Connect karke orders load karein.</div>
+        </section>
+    </main>
+    <script>
+        const $ = id => document.getElementById(id); let products = [];
+        function base() { return $('api').value.trim().replace(/\/$/, '') }
+        function headers(json = false) { const h = { 'X-Admin-Key': $('key').value.trim() }; if (json) h['Content-Type'] = 'application/json'; return h }
+        function message(text, ok = false) { $('message').innerHTML = ''; const d = document.createElement('div'); d.className = 'msg ' + (ok ? 'ok' : 'bad'); d.textContent = text; $('message').appendChild(d) }
+        async function request(path, opts = {}) { const res = await fetch(base() + path, { ...opts, headers: { ...headers(!!opts.body), ...(opts.headers || {}) } }); let body = {}; try { body = await res.json() } catch { } if (!res.ok) throw Error(body.message || body.error || `HTTP ${res.status}`); return body }
+        async function load() { try { const b = await request('/api/admin/products'); products = b.products || []; render(); message(`${products.length} products load hue.`, true) } catch (e) { message('Connect/load failed: ' + e.message) } }
+        function render() {
+            const host = $('products'); host.innerHTML = ''; if (!products.length) { host.textContent = 'Abhi koi product nahi mila.'; return } for (const p of products) {
+                const card = document.createElement('div'); card.className = 'prod'; const left = document.createElement('div'); const title = document.createElement('strong'); title.textContent = `${p.emoji || '🛒'} ${p.name}`; const detail = document.createElement('small'); detail.textContent = `ID ${p.id} · ${p.category} · ${p.unit} · ₹${(p.price_paise / 100).toFixed(2)}`; const status = document.createElement('span'); status.className = 'pill ' + (p.in_stock ? '' : 'off'); status.textContent = p.in_stock ? 'In stock' : 'Out of stock'; if (p.image_url) {
+                    const img = document.createElement('img'); img.src = p.image_url.startsWith('http')
+                        ? p.image_url
+                        : base() + p.image_url; img.alt = p.name; img.style.cssText = 'width:75px;height:75px;object-fit:cover;border-radius:9px;margin-right:10px'; left.prepend(img)
+                } left.append(title, document.createElement('br'), detail, document.createElement('br'), status); const actions = document.createElement('div'); const edit = document.createElement('button'); edit.textContent = 'Edit'; edit.onclick = () => fill(p); const toggle = document.createElement('button'); toggle.className = p.in_stock ? 'warn' : 'secondary'; toggle.textContent = p.in_stock ? 'Mark out of stock' : 'Mark in stock'; toggle.onclick = async () => { try { await request(`/api/admin/products/${p.id}/stock`, { method: 'PATCH', body: JSON.stringify({ in_stock: !p.in_stock }) }); await load() } catch (e) { message(e.message) } }; actions.append(edit, toggle); card.append(left, actions); host.append(card)
+            }
+        }
+        function fill(p) { $('photo').value = ''; $('id').value = p.id; $('name').value = p.name; $('category').value = p.category; $('unit').value = p.unit; $('price').value = (p.price_paise / 100).toFixed(2); $('emoji').value = p.emoji || '🛒'; $('stock').value = String(p.in_stock); $('formTitle').textContent = 'Product Edit Karein'; $('save').textContent = 'Update Product'; window.scrollTo({ top: 0, behavior: 'smooth' }) }
+        function clearForm() { $('id').value = '';['name', 'category', 'unit', 'price'].forEach(x => $(x).value = ''); $('emoji').value = '🛒'; $('stock').value = 'true'; $('formTitle').textContent = '2. Naya Product Add Karein'; $('save').textContent = 'Save Product'; $('photo').value = '' }
+        $('connect').onclick = async () => { await load(); await loadOrders() }; $('reload').onclick = load; $('clear').onclick = clearForm;
+        $('save').onclick = async () => { try { const price = Number($('price').value); if (!Number.isFinite(price) || price <= 0) throw Error('Price sahi daalein'); const payload = { name: $('name').value.trim(), category: $('category').value.trim(), unit: $('unit').value.trim(), price_paise: Math.round(price * 100), emoji: $('emoji').value.trim() || '🛒', in_stock: $('stock').value === 'true' }; if (!payload.name || !payload.category || !payload.unit) throw Error('Name, category aur unit bharna zaroori hai'); const id = $('id').value; const b = await request(id ? `/api/admin/products/${id}` : '/api/admin/products', { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) }); if ($('photo').files.length) { const f = $('photo').files[0]; if (f.size > 3 * 1024 * 1024) throw Error('Photo 3 MB se chhoti honi chahiye'); const fd = new FormData(); fd.append('image', f); const pid = id || b.product?.id; const response = await fetch(base() + `/api/admin/products/${pid}/image`, { method: 'POST', headers: headers(), body: fd }); const result = await response.json(); if (!response.ok) throw Error(result.error || result.message || 'Photo upload failed') } message('Product aur photo save ho gaye.', true); clearForm(); await load() } catch (e) { message('Save failed: ' + e.message) } };
+
+        function money(paise) { return '₹' + (Number(paise || 0) / 100).toFixed(2) }
+        function escapeText(v) { return String(v ?? '') }
+        async function loadOrders() { try { const b = await request('/api/admin/orders'); renderOrders(b.orders || []); message(`${(b.orders || []).length} orders load hue.`, true) } catch (e) { message('Orders load failed: ' + e.message) } }
+        function renderOrders(orders) { const host = $('orders'); host.innerHTML = ''; if (!orders.length) { host.textContent = 'Abhi koi order nahi mila.'; return } for (const o of orders) { const card = document.createElement('div'); card.className = 'prod'; card.style.alignItems = 'stretch'; card.style.flexDirection = 'column'; const heading = document.createElement('div'); const title = document.createElement('strong'); title.textContent = `${o.order_code} · ${o.customer_name}`; const meta = document.createElement('small'); meta.textContent = `${o.created_at ? new Date(o.created_at).toLocaleString() : ''} · ${o.phone} · ${o.payment_method} · Total ${money(o.total_paise)}`; const address = document.createElement('small'); address.textContent = 'Address: ' + escapeText(o.address); const items = document.createElement('small'); items.textContent = 'Items: ' + (o.items || []).map(it => `${it.product_name} × ${it.quantity}`).join(', '); heading.append(title, document.createElement('br'), meta, document.createElement('br'), address, document.createElement('br'), items); const controls = document.createElement('div'); controls.className = 'row'; const pill = document.createElement('span'); pill.className = 'pill' + (o.status === 'Cancelled' ? ' off' : ''); pill.textContent = 'Current: ' + o.status; const select = document.createElement('select'); select.style.maxWidth = '220px'; for (const s of ['Order Placed', 'Accepted', 'Packing', 'Out for Delivery', 'Delivered', 'Cancelled']) { const op = document.createElement('option'); op.value = s; op.textContent = s; if (s === o.status) op.selected = true; select.append(op) } const save = document.createElement('button'); save.textContent = 'Update Status'; save.onclick = async () => { try { save.disabled = true; await request('/api/admin/orders/' + encodeURIComponent(o.order_code) + '/status', { method: 'PATCH', body: JSON.stringify({ status: select.value }) }); await loadOrders() } catch (e) { message('Status update failed: ' + e.message) } finally { save.disabled = false } }; controls.append(pill, select, save); card.append(heading, controls); host.append(card) } }
+        $('ordersReload').onclick = loadOrders;
+    </script>
+</body>
+
+</html>
